@@ -3,7 +3,7 @@
     /// <summary>
     /// File settings MongoDb
     /// </summary>
-    public interface ISettings
+    public interface IMongoDbSettings
     {
         /// <summary>
         /// Connection string to MongoDb

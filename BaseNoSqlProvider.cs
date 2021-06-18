@@ -8,10 +8,10 @@ namespace Stp.Tools.MongoDB
     /// <typeparam name="T"></typeparam>
     public abstract class BaseNoSqlProvider<T> where T : class
     {
-        private readonly ISettings _settings;
+        private readonly IMongoDbSettings _settings;
         private readonly string _nameCollection;
 
-        protected BaseNoSqlProvider(ISettings settings, string nameCollection)
+        protected BaseNoSqlProvider(IMongoDbSettings settings, string nameCollection)
         {
             _settings = settings;
             _nameCollection = nameCollection;

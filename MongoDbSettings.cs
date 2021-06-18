@@ -5,7 +5,7 @@ namespace Stp.Tools.MongoDB
     /// <summary>
     ///     File settings MongoDb
     /// </summary>
-    public class Settings : ISettings
+    public class MongoDbSettings : IMongoDbSettings
     {
         public string ConnectionString { get; set; }
     }
