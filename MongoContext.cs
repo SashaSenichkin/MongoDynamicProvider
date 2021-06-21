@@ -12,7 +12,7 @@ namespace Stp.Tools.MongoDB
         private readonly IMongoDatabase _db;
         private readonly string _nameCollection;
 
-        public MongoContext(ISettings settings, string nameCollection) : base(settings.ConnectionString)
+        public MongoContext(IMongoDbSettings settings, string nameCollection) : base(settings.ConnectionString)
         {
             _nameCollection = nameCollection;
             _db = GetDatabase(Settings.Credential.Source);

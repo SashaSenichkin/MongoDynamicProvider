@@ -3,10 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.11</Version>
+    <Version>1.0.12</Version>
     <AssemblyName>Stp.Tools.MongoDB</AssemblyName>
-    <AssemblyVersion>1.0.11.0</AssemblyVersion>
-    <FileVersion>1.0.11.0</FileVersion>
+    <AssemblyVersion>1.0.12.0</AssemblyVersion>
+    <FileVersion>1.0.12.0</FileVersion>
     <RootNamespace>Stp.Tools.MongoDB</RootNamespace>
   </PropertyGroup>
 

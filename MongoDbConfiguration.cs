@@ -7,7 +7,7 @@ namespace Stp.Tools.MongoDB
     /// <summary>
     /// MongoDb extension
     /// </summary>
-    public static class Configuration
+    public static class MongoDbConfiguration
     {
         /// <summary>   
         /// Adding and configuring MongoDb
@@ -16,7 +16,7 @@ namespace Stp.Tools.MongoDB
         /// <param name="configuration"></param>
         public static void AddMongoDb(this IServiceCollection services)
         {
-            services.AddSingleton<ISettings>(sp => sp.GetRequiredService<IOptions<Settings>>().Value);
+            services.AddSingleton<IMongoDbSettings>(sp => sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
         }
     }
 }
