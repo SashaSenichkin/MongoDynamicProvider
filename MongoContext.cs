@@ -6,21 +6,21 @@ namespace Stp.Tools.MongoDB
     /// <summary>
     /// MongoClient for work with MongoDb
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public class MongoContext<T> : MongoClient where T : class
     {
         private readonly IMongoDatabase _db;
-        private readonly string _nameCollection;
+        private readonly string _collectionName;
 
-        public MongoContext(IMongoDbSettings settings, string nameCollection) : base(settings.ConnectionString)
+        public MongoContext(IMongoDbSettings settings, string collectionName) : base(settings.ConnectionString)
         {
-            _nameCollection = nameCollection;
-            _db = GetDatabase(Settings.Credential.Source);
+            _collectionName = collectionName;
+            _db = GetDatabase(settings.DatabaseName);
         }
-
+        
         /// <summary>
-        ///     Represents a typed collection in MongoDB queryable source
+        /// Represents a typed collection in MongoDB queryable source
         /// </summary>
-        public IMongoCollection<T> Source => _db.GetCollection<T>(_nameCollection);
+        public IMongoCollection<T> Source =>
+            _db.GetCollection<T>(_collectionName);
     }
 }

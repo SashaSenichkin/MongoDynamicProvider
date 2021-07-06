@@ -2,11 +2,10 @@
 
 namespace Stp.Tools.MongoDB
 {
-    /// <summary>
-    ///     File settings MongoDb
-    /// </summary>
     public class MongoDbSettings : IMongoDbSettings
     {
         public string ConnectionString { get; set; }
+        
+        public string DatabaseName { get; set; }
     }
 }
