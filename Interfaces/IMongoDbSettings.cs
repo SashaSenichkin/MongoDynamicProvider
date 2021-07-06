@@ -1,13 +1,19 @@
 ﻿namespace Stp.Tools.MongoDB.Interfaces
 {
     /// <summary>
-    /// File settings MongoDb
+    /// MongoDB settings as they are in the Vault's secret
     /// </summary>
     public interface IMongoDbSettings
     {
         /// <summary>
-        /// Connection string to MongoDb
+        /// <para>MongoDB connection string WITHOUT database name specified</para>
+        /// <para>Format: mongodb://[username]:[userpassword]@[host]:[port]</para>
         /// </summary>
-        string ConnectionString { get; set; }
+        public string ConnectionString { get; set; }
+        
+        /// <summary>
+        /// MongoDB database name
+        /// </summary>
+        public string DatabaseName { get; set; }
     }
 }
