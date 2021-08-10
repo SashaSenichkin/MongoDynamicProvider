@@ -1,12 +1,19 @@
 stages:
   - deploy
 
-"Deploying":
+"Publishing Nuget-package":
 
   stage: deploy
+
+  tags:
+    - docker
+
   image: "mcr.microsoft.com/dotnet/sdk:5.0"
+
   script:
+
     - dotnet pack -c Release
+
     - >
       dotnet nuget add 
       source "$CI_SERVER_URL/api/v4/projects/$CI_PROJECT_ID/packages/nuget/index.json" 
@@ -14,6 +21,8 @@ stages:
       --username gitlab-ci-token 
       --password $CI_JOB_TOKEN 
       --store-password-in-clear-text
+
     - dotnet nuget push "bin/Release/*.nupkg" --source gitlab
+
   only:
     - master
