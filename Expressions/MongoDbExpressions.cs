@@ -2,18 +2,10 @@
 using System.Linq;
 using System.Linq.Expressions;
 using MongoDB.Driver;
+using Stp.Tools.MongoDB.Enums;
 
 namespace Stp.Tools.MongoDB.Expressions
 {
-    /// <summary>
-    /// Order direction for MongoDB collection
-    /// </summary>
-    public enum OrderDirection
-    {
-        Asc,
-        Desc
-    }
-
     /// <summary>
     /// MongoDB expressions
     /// </summary>
