@@ -28,8 +28,8 @@ namespace Stp.Tools.MongoDB.Expressions
         public static IOrderedFindFluent<TDocument, TProjection> SortByPropertyName<TDocument, TProjection>(
             this IFindFluent<TDocument, TProjection> source, string propertyName, OrderDirection direction)
         {
-            var mongoMethodName = direction == OrderDirection.Asc ? "SortBy" : "SortByDescending";
-            return GetOrderedFromSource(source, propertyName, mongoMethodName);
+            var mongodbMethodName = direction == OrderDirection.Asc ? nameof(IFindFluentExtensions.SortBy) : nameof(IFindFluentExtensions.SortByDescending);
+            return GetOrderedFromSource(source, propertyName, mongodbMethodName);
         }
 
         /// <summary>
@@ -43,15 +43,16 @@ namespace Stp.Tools.MongoDB.Expressions
         public static IOrderedFindFluent<TDocument, TProjection> ThenSortByPropertyName<TDocument, TProjection>(
             this IOrderedFindFluent<TDocument, TProjection> source, string propertyName, OrderDirection direction)
         {
-            var mongoMethodName = direction == OrderDirection.Asc ? "ThenBy" : "ThenByDescending";
-            return GetOrderedFromSource(source, propertyName, mongoMethodName);
+            var mongodbMethodName = direction == OrderDirection.Asc ? nameof(IFindFluentExtensions.ThenBy) : nameof(IFindFluentExtensions.ThenByDescending);
+            return GetOrderedFromSource(source, propertyName, mongodbMethodName);
         }
 
         private static IOrderedFindFluent<TDocument, TProjection> GetOrderedFromSource<TDocument, TProjection>(
             IFindFluent<TDocument, TProjection> source, string propertyName, string methodName)
         {
             var entityType = typeof(TDocument);
-            var entityPropertyInfo = entityType.GetProperty(propertyName);
+            var entityPropertyInfo = entityType.GetProperties()
+                                               .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.CurrentCultureIgnoreCase));
             if (entityPropertyInfo is null)
             {
                 throw new Exception($"Property \"{propertyName}\" not found");
