@@ -52,7 +52,7 @@ namespace Stp.Tools.MongoDB.Expressions
         {
             var entityType = typeof(TDocument);
             var entityPropertyInfo = entityType.GetProperties()
-                                               .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.CurrentCultureIgnoreCase));
+                                               .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.OrdinalIgnoreCase));
             if (entityPropertyInfo is null)
             {
                 throw new Exception($"Property \"{propertyName}\" not found");
