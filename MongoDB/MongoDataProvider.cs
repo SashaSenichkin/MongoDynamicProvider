@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Stp.Tools.MongoDB
 {
-    class MongoDataProvider<T> : BaseNoSqlProvider<T> where T : class, new()
+    public class MongoDataProvider<T> : BaseNoSqlProvider<T> where T : class, new()
     {
         private IMongoCollection<BsonDocument> bsonCollection;
         public MongoDataProvider(IMongoDbSettings settings, string nameCollection) : base(settings, nameCollection)
@@ -25,7 +25,7 @@ namespace Stp.Tools.MongoDB
             bsonCollection = mongoBase.GetCollection<BsonDocument>(nameCollection);
         }
 
-        public override async Task<IEnumerable<T>> GetCollectionAsync(FilterDefinition<T> filter = null)
+        public async Task<IEnumerable<T>> GetCollectionAsync(FilterDefinition<T> filter = null)
         {
             IEnumerable<T> result = new List<T>();
             var filterTypes = filter?.Render(BsonSerializer.SerializerRegistry.GetSerializer<T>(), BsonSerializer.SerializerRegistry) ?? Builders<BsonDocument>.Filter.Empty;
@@ -46,19 +46,24 @@ namespace Stp.Tools.MongoDB
         }
 
 
-        private T Convert(BsonDocument source)
+        public static T Convert(BsonDocument source)
         {
-            var result = new T();
-
-            var props = typeof(T).GetProperties();
             var expandFromBson = BsonSerializer.Deserialize<ExpandoObject>(source);
-            foreach (var item in expandFromBson.Where(x => x.Value != null))
+            var result = CreateAndFill<T>(expandFromBson);
+            return result;
+        }
+
+        private static Y CreateAndFill<Y>(ExpandoObject source)
+        {
+            var result = Activator.CreateInstance<Y>();
+            var props = typeof(Y).GetProperties();
+            foreach (var item in source.Where(x => x.Value != null))
             {
                 try
                 {
-                    var property = props.FirstOrDefault(x => x.Name.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
+                    var property = props.FirstOrDefault(x => IsHaveProperAttribute(x, item.Key));
                     if (property == null)
-                        property = props.FirstOrDefault(x => IsHaveProperAttribute(x, item.Key));
+                        property = props.FirstOrDefault(x => x.Name.Equals(item.Key, StringComparison.OrdinalIgnoreCase)); 
 
                     if (property != null)
                         SetValue(property, item, result);
@@ -71,14 +76,15 @@ namespace Stp.Tools.MongoDB
             return result;
         }
 
-        private void SetValue(PropertyInfo property, KeyValuePair<string, object> item, T result)
+      private static void SetValue<Y>(PropertyInfo property, KeyValuePair<string, object> item, Y result)
         {
             if (item.Value is List<object> list && property.PropertyType != typeof(string))
             {
                 dynamic newList = Activator.CreateInstance(property.PropertyType);
-                property.SetValue(result, newList);
                 foreach (var someObject in list)
                     AddValueToList(newList, someObject);
+
+                property.SetValue(result, newList);
             }
             else
             {
@@ -87,9 +93,19 @@ namespace Stp.Tools.MongoDB
         }
         public static void AddValueToList<Y>(List<Y> list, object obj) where Y : class
         {
-            list.Add(obj as Y);
+            Y item;
+            if (obj is ExpandoObject exp)
+            {
+                item = CreateAndFill<Y>(exp);
+            }
+            else
+            {
+                item = obj as Y;
+            }
+
+            list.Add(item);
         }
-        private bool IsHaveProperAttribute(PropertyInfo x, string key)
+        private static bool IsHaveProperAttribute(PropertyInfo x, string key)
         {
             var attributes = x.GetCustomAttributes().Select(x => x as BsonElementAttribute).Where(x => x != null);
             return attributes.Any(x => x.ElementName.Equals(key, StringComparison.OrdinalIgnoreCase));
