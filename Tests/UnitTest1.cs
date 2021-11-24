@@ -2,8 +2,6 @@ using MongoDB.Bson;
 using NUnit.Framework;
 using Stp.Tools.MongoDB;
 using System.IO;
-using System;
-
 
 namespace Tests
 {
