@@ -19,14 +19,11 @@ namespace Stp.Tools.MongoDB
     /// Supports Arrays, simple fields, Lists, classes in mongo bsons.
     /// </summary>
     /// <typeparam name="TEntity">Your model type</typeparam>
-    public class MongoDataProvider<TEntity> : BaseNoSqlProvider<TEntity> where TEntity : class, new()
+    public class MongoDataProvider<TEntity> : BaseNoSqlProvider<BsonDocument> where TEntity : class, new()
     {
-        private readonly IMongoCollection<BsonDocument> _bsonCollection;
         public MongoDataProvider(IMongoDbSettings settings, string nameCollection) : base(settings, nameCollection)
         {
-            var client = new MongoClient(settings.ConnectionString);
-            var mongoBase = client.GetDatabase(settings.DatabaseName);
-            _bsonCollection = mongoBase.GetCollection<BsonDocument>(nameCollection);
+            
         }
         
         /// <summary>
@@ -38,7 +35,7 @@ namespace Stp.Tools.MongoDB
         {
             var filterTypes = filter?.Render(BsonSerializer.SerializerRegistry.GetSerializer<TEntity>(), BsonSerializer.SerializerRegistry) ?? Builders<BsonDocument>.Filter.Empty;
 
-            var foundElems = await _bsonCollection.FindAsync(filterTypes);
+            var foundElems = await GetContext().Source.FindAsync(filterTypes);
             var foundElemsList = await foundElems.ToListAsync();
             var result = foundElemsList.Select(Convert).Where(x => x != null).ToList();
             return result;
@@ -52,7 +49,7 @@ namespace Stp.Tools.MongoDB
         public async Task<List<TEntity>> GetCollectionAsync(Func<IQueryable, IEnumerable<BsonDocument>> qFilter)
         {
             var filter = Builders<TEntity>.Filter.Empty;
-            var foundElems = qFilter(_bsonCollection.AsQueryable()).Where(x => filter.Inject());
+            var foundElems = qFilter(GetContext().Source.AsQueryable()).Where(x => filter.Inject());
             var foundElemsList = foundElems.ToList();
             var result = foundElemsList.Select(Convert).Where(x => x != null).ToList();
             return result;
