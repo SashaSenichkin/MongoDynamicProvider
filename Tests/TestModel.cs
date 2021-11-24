@@ -30,10 +30,13 @@ namespace Tests
         public double DoubleField2 { get; set; }
 
         public List<string> ArrayField { get; set; }
+        
         public List<TestSubCLass> CustomArrayField { get; set; }
+        
+        public class TestSubCLass
+        {
+            public string StringField { get; set; }
+        }
     }
-    public class TestSubCLass
-    {
-        public string StringField { get; set; }
-    }
+
 }

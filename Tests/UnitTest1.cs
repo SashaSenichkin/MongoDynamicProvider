@@ -9,12 +9,6 @@ namespace Tests
 {
     public class Tests
     {
-
-        [SetUp]
-        public void Setup()
-        {
-        }
-
         [Test]
         public void TestCorrectSet()
         {
@@ -29,7 +23,6 @@ namespace Tests
             Assert.AreEqual(entity.DoubleField2, 2.22d);
             Assert.AreEqual(entity.ArrayField[0], "arr1");
             Assert.AreEqual(entity.CustomArrayField[0].StringField, "test1");
-
         }
 
         [Test]
@@ -46,7 +39,6 @@ namespace Tests
             Assert.AreEqual(entity.DoubleField2, 2.22d);
             Assert.AreEqual(entity.ArrayField[0], "arr1");
             Assert.AreEqual(entity.CustomArrayField[0].StringField, "test1");
-
         }
 
         [Test]
@@ -56,12 +48,13 @@ namespace Tests
             var bson = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
             var entity = MongoDataProvider<TestModel>.Convert(bson);
             Assert.AreEqual(entity.StringField1, "test1");
+            Assert.AreEqual(entity.StringField2, null);
             Assert.AreEqual(entity.IntField1, 1);
             Assert.AreEqual(entity.IntField2, 2);
+            Assert.AreEqual(entity.DoubleField1, 0.0d);
             Assert.AreEqual(entity.DoubleField2, 2.22d);
             Assert.AreEqual(entity.ArrayField[0], "arr1");
             Assert.AreEqual(entity.CustomArrayField[0].StringField, "test1");
-
         }
     }
 }
