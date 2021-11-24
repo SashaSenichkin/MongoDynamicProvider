@@ -23,21 +23,21 @@ namespace Stp.Tools.MongoDB
     {
         public MongoDataProvider(IMongoDbSettings settings, string nameCollection) : base(settings, nameCollection)
         {
-            
         }
         
         /// <summary>
         /// base method to work. supports mongo filers 
         /// </summary>
         /// <param name="filter"></param>
+        /// <param name="errors">all errors, raised while, null if you don't care</param>
         /// <returns>list of entities we, can parse correctly</returns>
-        public async Task<List<TEntity>> GetCollectionAsync(FilterDefinition<TEntity> filter = null)
+        public async Task<List<TEntity>> GetCollectionAsync(FilterDefinition<TEntity> filter = null, List<Exception> errors = null)
         {
             var filterTypes = filter?.Render(BsonSerializer.SerializerRegistry.GetSerializer<TEntity>(), BsonSerializer.SerializerRegistry) ?? Builders<BsonDocument>.Filter.Empty;
 
-            var foundElems = await GetContext().Source.FindAsync(filterTypes);
-            var foundElemsList = await foundElems.ToListAsync();
-            var result = foundElemsList.Select(Convert).Where(x => x != null).ToList();
+            var foundElems = await GetContext().Source.FindAsync(filterTypes).ConfigureAwait(false);
+            var foundElemsList = await foundElems.ToListAsync().ConfigureAwait(false);
+            var result = foundElemsList.Select(x => Convert(x, errors)).Where(x => x != null).ToList();
             return result;
         }
 
@@ -46,12 +46,12 @@ namespace Stp.Tools.MongoDB
         /// </summary>
         /// <param name="qFilter"></param>
         /// <returns>list of entities we, can parse correctly</returns>
-        public async Task<List<TEntity>> GetCollectionAsync(Func<IQueryable, IEnumerable<BsonDocument>> qFilter)
+        public async Task<List<TEntity>> GetCollectionAsync(Func<IQueryable, IEnumerable<BsonDocument>> qFilter, List<Exception> errors = null)
         {
             var filter = Builders<TEntity>.Filter.Empty;
             var foundElems = qFilter(GetContext().Source.AsQueryable()).Where(x => filter.Inject());
             var foundElemsList = foundElems.ToList();
-            var result = foundElemsList.Select(Convert).Where(x => x != null).ToList();
+            var result = foundElemsList.Select(x => Convert(x, errors)).Where(x => x != null).ToList();
             return result;
         }
 
@@ -59,8 +59,10 @@ namespace Stp.Tools.MongoDB
         /// reflection parser start. swallow exceptions. use DebugConvert if you want to see errors with entity
         /// </summary>
         /// <param name="source">document to parse</param>
+        /// <param name="errors">all errors, raised while, null if you don't care</param>
         /// <returns>entity of your type or null</returns>
-        public static TEntity Convert(BsonDocument source)
+        /// <exception cref="FormatException">some unsupported cases from mongo bson</exception>
+        public static TEntity Convert(BsonDocument source, List<Exception> errors)
         {
             try
             {
@@ -70,23 +72,11 @@ namespace Stp.Tools.MongoDB
             }
             catch (Exception e)
             {
+                errors?.Add(e);
                 return null;
             }
         }
         
-        /// <summary>
-        /// reflection to Debug problem entities 
-        /// </summary>
-        /// <param name="source">document to parse</param>
-        /// <returns>entity of your type or Exception</returns>
-        /// <exception cref="FormatException">some unsupported cases from mongo bson</exception>
-        public static TEntity DebugConvert(BsonDocument source)
-        {
-            var expandFromBson = BsonSerializer.Deserialize<ExpandoObject>(source);
-            var result = CreateAndFill<TEntity>(expandFromBson);
-            return result;
-        }
-
         private static TCustomClass CreateAndFill<TCustomClass>(ExpandoObject source) where TCustomClass : class
         {
             var result = Activator.CreateInstance<TCustomClass>();

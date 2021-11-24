@@ -12,7 +12,7 @@ namespace Tests
         {
             var json = File.ReadAllText("../../../Files/correctSet.json");
             var bson = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
-            var entity = MongoDataProvider<TestModel>.Convert(bson);
+            var entity = MongoDataProvider<TestModel>.Convert(bson, null);
             Assert.AreEqual(entity.StringField1, "test1");
             Assert.AreEqual(entity.StringField2, "test2");
             Assert.AreEqual(entity.IntField1, 1);
@@ -28,7 +28,7 @@ namespace Tests
         {
             var json = File.ReadAllText("../../../Files/overSet.json");
             var bson = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
-            var entity = MongoDataProvider<TestModel>.Convert(bson);
+            var entity = MongoDataProvider<TestModel>.Convert(bson, null);
             Assert.AreEqual(entity.StringField1, "test1");
             Assert.AreEqual(entity.StringField2, "test2");
             Assert.AreEqual(entity.IntField1, 1);
@@ -44,7 +44,7 @@ namespace Tests
         {
             var json = File.ReadAllText("../../../Files/lackSet.json");
             var bson = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(json);
-            var entity = MongoDataProvider<TestModel>.Convert(bson);
+            var entity = MongoDataProvider<TestModel>.Convert(bson, null);
             Assert.AreEqual(entity.StringField1, "test1");
             Assert.AreEqual(entity.StringField2, null);
             Assert.AreEqual(entity.IntField1, 1);
