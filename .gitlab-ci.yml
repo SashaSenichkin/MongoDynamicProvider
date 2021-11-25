@@ -15,8 +15,6 @@ stages:
     - dotnet restore
     - dotnet test --configuration Release
 
-  only:
-    - master
     
 "Publishing Nuget-package":
 
