@@ -1,4 +1,4 @@
-﻿# Visual Studio cache/options directory
+# Visual Studio cache/options directory
 .vs/
 obj/
 bin/
@@ -111,3 +111,4 @@ ClientBin/
 node_modules/
 orleans.codegen.cs
 *.DotSettings
+.idea/

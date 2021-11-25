@@ -37,7 +37,7 @@ stages:
       --password $CI_JOB_TOKEN 
       --store-password-in-clear-text
 
-    - dotnet nuget push "bin/Release/*.nupkg" --source gitlab
+    - dotnet nuget push "MongoDB/bin/Release/*.nupkg" --source gitlab
 
   only:
     - master
