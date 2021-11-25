@@ -2,7 +2,6 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Stp.Tools.MongoDB.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,55 +18,51 @@ namespace Stp.Tools.MongoDB
     /// Supports Arrays, simple fields, Lists, classes in mongo bsons.
     /// </summary>
     /// <typeparam name="TEntity">Your model type</typeparam>
-    public class MongoDataProvider<TEntity> : BaseNoSqlProvider<BsonDocument> where TEntity : class, new()
+    public abstract class MongoDataProvider<TEntity> : BaseNoSqlProvider<BsonDocument> where TEntity : class, new()
     {
-        public MongoDataProvider(IMongoDbSettings settings, string nameCollection) : base(settings, nameCollection)
+        protected MongoDataProvider(IMongoDbSettings settings, string nameCollection) : base(settings, nameCollection)
         {
         }
         
         /// <summary>
         /// base method to work. supports mongo filers 
         /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="errors">all errors, raised while, null if you don't care</param>
-        /// <returns>list of entities we, can parse correctly</returns>
-        public async Task<List<TEntity>> GetCollectionAsync(FilterDefinition<TEntity> filter = null, List<Exception> errors = null)
+        /// <param name="filter">null to get full collection</param>
+        /// <returns>list of entities we can parse correctly. Also all errors list, raised while converting, ignore if you don't care</returns>
+        protected async Task<(List<TEntity>, List<Exception>)> GetFromBsonDocAsync(FilterDefinition<TEntity> filter = null)
         {
             var filterTypes = filter?.Render(BsonSerializer.SerializerRegistry.GetSerializer<TEntity>(), BsonSerializer.SerializerRegistry) ?? Builders<BsonDocument>.Filter.Empty;
 
-            var foundElems = await GetContext().Source.FindAsync(filterTypes).ConfigureAwait(false);
+            var foundElems = await base.GetContext().Source.FindAsync(filterTypes).ConfigureAwait(false);
             var foundElemsList = await foundElems.ToListAsync().ConfigureAwait(false);
-            var result = foundElemsList.Select(x => Convert(x, errors)).Where(x => x != null).ToList();
-            return result;
+            return Convert<TEntity>(foundElemsList);
         }
-
+        
         /// <summary>
-        /// experimental feature.. can support linq queries, as documentation says)
+        /// simple convert of bsonEntities 
         /// </summary>
-        /// <param name="qFilter"></param>
-        /// <returns>list of entities we, can parse correctly</returns>
-        public async Task<List<TEntity>> GetCollectionAsync(Func<IQueryable, IEnumerable<BsonDocument>> qFilter, List<Exception> errors = null)
+        /// <param name="source"></param>
+        /// <returns>list of entities we, can parse correctly. Also all errors list, raised while, ignore if you don't care</returns>
+        protected static (List<TRequest>, List<Exception>) Convert<TRequest>(List<BsonDocument> source) where TRequest : class, new()
         {
-            var filter = Builders<TEntity>.Filter.Empty;
-            var foundElems = qFilter(GetContext().Source.AsQueryable()).Where(x => filter.Inject());
-            var foundElemsList = foundElems.ToList();
-            var result = foundElemsList.Select(x => Convert(x, errors)).Where(x => x != null).ToList();
-            return result;
+            var errors = new List<Exception>();
+            var result = source.Select(x => Convert<TRequest>(x, errors)).Where(x => x != null).ToList();
+            return (result, errors);
         }
 
         /// <summary>
-        /// reflection parser start. swallow exceptions. use DebugConvert if you want to see errors with entity
+        /// reflection parser.
         /// </summary>
         /// <param name="source">document to parse</param>
-        /// <param name="errors">all errors, raised while, null if you don't care</param>
+        /// <param name="errors">add error, if one raised while work. send null if you don't care</param>
         /// <returns>entity of your type or null</returns>
         /// <exception cref="FormatException">some unsupported cases from mongo bson</exception>
-        public static TEntity Convert(BsonDocument source, List<Exception> errors)
+        private static TRequest Convert<TRequest>(BsonDocument source, List<Exception> errors) where TRequest : class, new()
         {
             try
             {
                 var expandFromBson = BsonSerializer.Deserialize<ExpandoObject>(source);
-                var result = CreateAndFill<TEntity>(expandFromBson);
+                var result = CreateAndFill<TRequest>(expandFromBson);
                 return result;
             }
             catch (Exception e)
@@ -107,33 +102,34 @@ namespace Stp.Tools.MongoDB
 
         private static void SetValue<TCustomClass>(PropertyInfo property, KeyValuePair<string,object> item, TCustomClass result) where TCustomClass : class
         {
-            if (item.Value is List<object> list && property.PropertyType != typeof(string))
-            {
-                dynamic newList = Activator.CreateInstance(property.PropertyType);
-                if (newList is null)
-                {
-                    throw new FormatException($"can't create instance of {property.PropertyType}" );
-                }
-                
-                foreach (var someObject in list)
-                {
-                    newList.Add(someObject is ExpandoObject exp
-                        ? CreateAndFill<TCustomClass>(exp)
-                        : someObject as TCustomClass);
-                }
-
-                property.SetValue(result, newList);
-            }
-            else
+            if (item.Value is not List<object> list || property.PropertyType == typeof(string))
             {
                 property.SetValue(result, item.Value);
+                return;
             }
+
+            dynamic newList = Activator.CreateInstance(property.PropertyType);
+            if (newList is null)
+            {
+                throw new FormatException($"can't create instance of {property.PropertyType}");
+            }
+
+            foreach (var someObject in list)
+            {
+                newList.Add(someObject is ExpandoObject exp
+                    ? CreateAndFill<TCustomClass>(exp)
+                    : someObject as TCustomClass);
+            }
+
+            property.SetValue(result, newList);
         }
         
         private static bool IsHaveProperAttribute(PropertyInfo property, string key)
         {
-            return property.GetCustomAttributes().Select(x => x as BsonElementAttribute).Where(x => x != null)
-                                                 .Any(x => x.ElementName.Equals(key, StringComparison.OrdinalIgnoreCase));
+            return property.GetCustomAttributes()
+                           .Select(x => x as BsonElementAttribute)
+                           .Where(x => x != null)
+                           .Any(x => x.ElementName.Equals(key, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
