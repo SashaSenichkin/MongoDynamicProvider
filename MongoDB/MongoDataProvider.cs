@@ -116,13 +116,21 @@ namespace Stp.Tools.MongoDB
 
             foreach (var someObject in list)
             {
-                newList.Add(someObject is ExpandoObject exp
-                    ? CreateAndFill<TCustomClass>(exp)
-                    : someObject as TCustomClass);
+                AddValueToList(newList, someObject);
             }
 
             property.SetValue(result, newList);
         }
+        
+        private static void AddValueToList<TListArgument>(List<TListArgument> list, object obj) where TListArgument : class
+        {
+            var item = obj is ExpandoObject exp
+                ? CreateAndFill<TListArgument>(exp)
+                : obj as TListArgument;
+            
+            list.Add(item);
+        }
+
         
         private static bool IsHaveProperAttribute(PropertyInfo property, string key)
         {
