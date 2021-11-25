@@ -1,0 +1,9 @@
+{
+ "_id": { "$oid": "57d7a121fa937f710a7d4873" },
+    "otherFieldName": "test1",
+    "otherFieldName2": 1,
+    "IntField2": 2,
+    "DoubleField2": 2.22,
+    "ArrayField": ["arr1", "arr2", "arr3"],	
+	"CustomArrayField": [{"StringField": "test1"}, {"StringField": "test2"}, {"StringField": "test3"}]
+}
