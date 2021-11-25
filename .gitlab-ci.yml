@@ -1,6 +1,23 @@
 stages:
+  - test
   - deploy
 
+"Testing Service":
+
+  stage: test
+
+  tags:
+    - docker
+
+  image: "mcr.microsoft.com/dotnet/sdk:5.0"
+
+  script:
+    - dotnet restore
+    - dotnet test --configuration Release
+
+  only:
+    - master
+    
 "Publishing Nuget-package":
 
   stage: deploy
